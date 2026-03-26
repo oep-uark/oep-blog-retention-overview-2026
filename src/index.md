@@ -106,7 +106,7 @@ const legend = html`<div
 </div>`;
 
 display(
-  html`<div style="display:flex; align-items:flex-start; gap:16px;>
+  html`<div style="display:flex; align-items:flex-start; gap:16px;">
     ${chart} ${legend}
   </div>`,
 );
