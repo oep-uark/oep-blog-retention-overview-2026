@@ -46,19 +46,7 @@ const chart = Plot.plot({
       y: "value",
       fill: "category",
       order: categories.map((c) => c.label),
-      tip: { fontFamily: "Roboto, sans-serif", fontSize: 14 },
-      title: (d) => {
-        const v = Number(d.value);
-        const labelMap = {
-          Stayer: `${v.toFixed(1)}% teach in same school.`,
-          Switcher: `${v.toFixed(1)}% switch roles within districts.`,
-          "Mover - Same District": `${v.toFixed(1)}% move schools within district.`,
-          "Mover - New District": `${v.toFixed(1)}% move schools between districts.`,
-          Exiter: `${v.toFixed(1)}% exit the Arkansas education workforce.`,
-          Retired: `${v.toFixed(1)}% retire from teaching.`,
-        };
-        return `${d.category} (${d.schoolyear})\n• ${labelMap[d.category] ?? `${v.toFixed(1)}%`}`;
-      },
+      title: (d) => d.category, // writes category into a <title> child on each rect
     }),
     Plot.text(
       labor_market_outcomes,
@@ -73,28 +61,57 @@ const chart = Plot.plot({
           d.category === "Switcher" || d.category === "Mover - New District"
             ? "black"
             : "white",
+        title: (d) => d.category, // same for text labels
       }),
     ),
   ],
 });
 
-// Custom vertical legend — Plot.legend() can't do vertical layout natively
-const legend = html`<div
-  style="
-  padding-top: 52px;
-  font-family: 'Roboto', sans-serif;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 160px;
-"
+// Read the <title> child to get each element's category, store as a data
+// attribute, then remove <title> so the browser doesn't show native tooltips.
+for (const el of chart.querySelectorAll("rect, text")) {
+  const titleEl = el.querySelector("title");
+  if (titleEl) {
+    el.dataset.category = titleEl.textContent;
+    titleEl.remove();
+  }
+}
+
+// A single <style> block drives the fade via CSS — no per-element DOM loops.
+// CSS transitions make the fade smooth automatically.
+const fadeStyle = html`<style></style>`;
+
+function highlight(category) {
+  // css adds lower opacity to all the items not tagged with data-category equal to the hovered category
+  fadeStyle.textContent = category
+    ? `
+    svg rect[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
+    svg text[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
+    div[data-category]:not([data-category="${category}"]) { opacity: 0.4; transition: opacity 0.2s; }
+    div[data-category="${category}"] span { font-weight: 700; }
+  `
+    : "";
+}
+
+chart.addEventListener("mouseover", (e) => {
+  highlight(e.target.closest("[data-category]")?.dataset.category ?? null);
+});
+chart.addEventListener("mouseleave", () => highlight(null));
+
+const legendEl = html`<div
+  style="padding-top:52px; font-family:'Roboto',sans-serif; display:flex; flex-direction:column; gap:10px; min-width:160px; user-select:none;"
 >
   <div style="font-size:15px; font-weight:600; color:#333; margin-bottom:2px;">
     Labor Force Outcome
   </div>
   ${colorScale.domain.map(
     (label, i) =>
-      html`<div style="display:flex; align-items:center; gap:10px;">
+      html`<div
+        data-category="${label}"
+        style="display:flex; align-items:center; gap:10px; cursor:default;"
+        onmouseover=${() => highlight(label)}
+        onmouseout=${() => highlight(null)}
+      >
         <div
           style="width:18px; height:18px; background:${colorScale.range[
             i
@@ -107,7 +124,7 @@ const legend = html`<div
 
 display(
   html`<div style="display:flex; align-items:flex-start; gap:16px;">
-    ${chart} ${legend}
+    ${fadeStyle} ${chart} ${legendEl}
   </div>`,
 );
 ```
