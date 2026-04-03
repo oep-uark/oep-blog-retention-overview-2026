@@ -7,15 +7,50 @@
 - R data loader pattern working: `src/data/labor-market-outcomes.csv.R` reads real Arkansas
   teacher workforce transitions data from Box, computes retention percentages, outputs CSV
 - Dev server running; GitHub Pages deploy not yet configured
+- Component pattern established: JS modules in `src/components/`, imported into markdown pages.
+  `FileAttachment` stays in the markdown; chart logic lives in components.
 
-### Chart 1: Stacked bar — retention categories over time (`src/index.md`)
+### Prose
+- Full blog narrative written for all sections: retention rate overview, exits vs. retirements,
+  stayers/movers, district-level patterns, conclusion.
+
+### Chart 1: Stacked bar — retention categories over time
+- `src/components/retention-bar-chart.js`
 - 100% stacked bar chart, 2014-15 through 2025-26, six categories
-- Real data connected via R loader
 - Custom color scale matching Josh's published report
 - Right-side vertical legend (custom HTML — Plot.legend() can't do vertical layout natively)
 - Hover-to-highlight interaction: hovering a bar segment or legend item fades all other
   categories. Uses Plot's `title` channel for element indexing + a dynamic CSS `<style>` block.
-- **Known limitation**: no prose yet — page still says "This could be some blog post text!"
+
+### Chart 2: Retention rate line chart
+- `src/components/retention-rate-chart.js`
+- Computed from the same data loader as Chart 1 (no separate loader needed)
+- Two-era split (pre/post pandemic) using `z: "era"` to create a gap in the line
+- Dashed reference line at pre-pandemic average with annotation
+- Subtle era labels pinned to a fixed y position, manually placed over each segment
+- Custom HTML tooltip via shared helper (see below)
+
+### Reusable tooltip helper
+- `src/components/tooltip.js` — `attachTooltip(chart, points, { x, y, format })`
+- Wraps any Plot chart with a custom HTML tooltip: full formatting control including bold text
+- Positions tooltip left/right of cursor depending on available space; flips above/below if
+  `y` channel provided (useful for scatter plots)
+- Works on mobile via pointer events
+- Used by Chart 2; designed to be reused by the district explorer
+
+---
+
+## What's still needed
+
+### Charts remaining (all have draft SVGs in `drafts/draft_plots/`)
+- **Switcher/Exiter/Retired change from baseline** — line chart, `switcher_exiter_retired_change_from_base_plot_draft.svg`
+- **Stayers/Movers change from baseline** — line chart, `stayers_movers_change_from_base_plot_draft.svg`
+- **District scatter plot** — change in retention vs. level, with shortage area highlighting, `change_in_retention_plot_draft.svg`
+- **District interactive explorer** — the centerpiece tool; needs its own data loader
+
+### Infrastructure remaining
+- GitHub Pages deploy not yet configured or tested
+- WordPress iframe embed pattern not yet validated end-to-end
 
 ---
 
@@ -28,8 +63,20 @@
   as long as you're working within Plot's built-in interaction model.
 - **Plot** gets you 80% of the way to a publication-quality chart quickly. Good for exploration
   and for charts that don't need pixel-perfect custom layout.
+- **Component modules** (`src/components/*.js`) keep markdown pages clean and make chart
+  logic reusable across pages.
 
 ### Where it fights you
+- **Plot.tip doesn't support rich text.** SVG can't bold text inline; `Plot.tip`'s `title`
+  channel is plain text only. Solution: `src/components/tooltip.js` — custom HTML div,
+  positioned via `chart.scale("x")`. Written once, reused everywhere.
+- **Axis label font size** cannot be set via Plot options. The rotated y-axis label renders
+  smaller than tick labels regardless of the chart's `fontSize`. Workaround: remove the label
+  and rely on prose, or manually place a `Plot.text` mark.
+- **Grid line opacity** can be silently reduced by the air theme. Fix: always set
+  `strokeOpacity: 1` explicitly on `Plot.gridY`.
+- **Ordinal x scales** should have `type: "point"` set explicitly to suppress a noisy
+  console warning about date-like strings.
 - **Plot's legend** has no vertical layout option. We had to build a custom HTML legend.
   This is a real gap and means the legend is outside Plot's rendering, requiring manual
   coordination for interactions.
@@ -37,9 +84,6 @@
   Plot 0.6 does not use D3's traditional `__data__` binding, so you cannot read datum
   from DOM elements in event handlers. Our working solution uses Plot's `title` channel
   to index elements, then a dynamic CSS `<style>` block to drive visual state.
-- **SVG text elements** sit on top of bar rects and intercept mouse events unless handled.
-- **Font sizes** in Plot SVG do not automatically match the page's CSS font size — must be
-  set explicitly on the plot's `style` option.
 - **Plot vs. raw D3**: for charts requiring very precise layout control, dropping down to
   raw D3 may be less painful than fighting Plot's constraints.
 
@@ -48,25 +92,15 @@ Svelte/LayerCake gives more layout control but requires building axis components
 Observable gives faster chart authoring and the data loader pattern, but custom interactions
 require non-idiomatic workarounds. For OEP's use case (R analysts publishing interactive
 work), Observable's data loader convenience likely wins — but expect to write some custom
-JavaScript for anything beyond Plot's built-in interactions.
+JavaScript for anything beyond Plot's built-in interactions. The tooltip helper is the main
+example: hard to build once, trivial to reuse.
 
 ---
 
-## Competing priorities / open questions
-
-- **Narrative first**: charts should serve the story, not the other way around. Next step
-  is writing prose before building more charts.
-
-- **Component abstraction**: the hover-highlight pattern and custom legend are worth
-  wrapping into reusable helper functions once the post is done. Goal: a future OEP
-  researcher calls one function, not 30 lines of custom code.
+## Open questions
 
 - **OEP brand colors**: not yet defined for the web. Currently using Josh's ColorBrewer
   palette from the print report. Needs a decision before anything ships.
-
-- **WordPress iframe embed**: the pattern (Observable Framework → GitHub Pages → iframe)
-  is planned but not yet tested end-to-end. Worth a dry run before investing heavily
-  in more charts.
 
 - **Accessibility**: SVG charts have no screen-reader support. Known gap, worth addressing
   before public launch but not blocking development.

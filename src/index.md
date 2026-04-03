@@ -16,6 +16,11 @@ After an initial rebound from the 2022-23 low point, Arkansas's teacher retentio
 
 ![](images/draft_plots/retention_rate_plot_draft.svg)
 
+```js
+import { retentionRateChart } from "./components/retention-rate-chart.js";
+display(retentionRateChart(labor_market_outcomes));
+```
+
 To understand what's behind these rates, we sort teachers based on their employment decisions between the 2024-25 to 2025-26 school years:
 
 - Stayers remained teaching in the same school(s);
@@ -30,7 +35,10 @@ In 2025-26:
 - 3.5 percent of teachers were Switchers;
 - 9.1 percent of teachers were Exiters - 6.4 percent left the Arkansas public school workforce and 2.7 percent retired.
 
-![](images/draft_plots/labor_market_outcomes_plot_draft.svg)
+```js
+import { retentionBarChart } from "./components/retention-bar-chart.js";
+display(retentionBarChart(labor_market_outcomes));
+```
 
 The overall retention rate of 87.3 percent counts both Movers and Stayers, since teachers in both remained teaching in Arkansas public schools in 2025-26. But the stability in this overall rate hides a few important stories of what's happening on the ground.
 
@@ -71,124 +79,3 @@ Below, you can review our updated interactive tool to examine how 2025-26 retent
 ## What This Plateau Means
 
 We now have several years of post-pandemic data that reveal a new normal for Arkansas schools: lower retention rates, driven by higher exit rates among early- and mid-career teachers. But this surface-level stability hides how the teacher labor market continues to evolve. Teachers are staying more and moving less. District-level variation is wide. To understand the teacher labor market in Arkansas more fully, we need to examine who is entering and exiting the workforce, where they're coming from, and where they're heading.
-
-```js
-const categories = [
-  { key: "stayer", label: "Stayer" },
-  { key: "mover_same", label: "Mover - Same District" },
-  { key: "mover_new", label: "Mover - New District" },
-  { key: "switcher", label: "Switcher" },
-  { key: "exiter", label: "Exiter" },
-  { key: "retired", label: "Retired" },
-];
-
-const colorScale = {
-  domain: categories.map((c) => c.label),
-  range: ["#053061", "#2166AC", "#92C5DE", "#F4A582", "#B2182B", "#67001F"],
-};
-
-const chart = Plot.plot({
-  width: 800,
-  height: 600,
-  marginLeft: 60,
-  marginBottom: 60,
-  style: { fontFamily: "Roboto, sans-serif", fontSize: "14px" },
-  x: { label: null, tickRotate: -35, type: "band", tickSize: 0 },
-  y: {
-    label: "% of Prior-Year Teachers",
-    labelAnchor: "center",
-    anchor: "left",
-    labelArrow: "none",
-    domain: [0, 100],
-    ticks: [0, 25, 50, 75, 100],
-    tickFormat: (d) => d + "%",
-  },
-  color: colorScale,
-  marks: [
-    Plot.barY(labor_market_outcomes, {
-      x: "schoolyear",
-      y: "value",
-      fill: "category",
-      order: categories.map((c) => c.label),
-      title: (d) => d.category, // writes category into a <title> child on each rect
-    }),
-    Plot.text(
-      labor_market_outcomes,
-      Plot.stackY({
-        x: "schoolyear",
-        y: "value",
-        z: "category",
-        order: categories.map((c) => c.label),
-        text: (d) => `${(+d.value).toFixed(1)}`,
-        fontSize: 12,
-        fill: (d) =>
-          d.category === "Switcher" || d.category === "Mover - New District"
-            ? "black"
-            : "white",
-        title: (d) => d.category, // same for text labels
-      }),
-    ),
-  ],
-});
-
-// Read the <title> child to get each element's category, store as a data
-// attribute, then remove <title> so the browser doesn't show native tooltips.
-for (const el of chart.querySelectorAll("rect, text")) {
-  const titleEl = el.querySelector("title");
-  if (titleEl) {
-    el.dataset.category = titleEl.textContent;
-    titleEl.remove();
-  }
-}
-
-// A single <style> block drives the fade via CSS — no per-element DOM loops.
-// CSS transitions make the fade smooth automatically.
-const fadeStyle = html`<style></style>`;
-
-function highlight(category) {
-  // css adds lower opacity to all the items not tagged with data-category equal to the hovered category
-  fadeStyle.textContent = category
-    ? `
-    svg rect[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
-    svg text[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
-    div[data-category]:not([data-category="${category}"]) { opacity: 0.4; transition: opacity 0.2s; }
-    div[data-category="${category}"] span { font-weight: 700; }
-  `
-    : "";
-}
-
-chart.addEventListener("mouseover", (e) => {
-  highlight(e.target.closest("[data-category]")?.dataset.category ?? null);
-});
-chart.addEventListener("mouseleave", () => highlight(null));
-
-const legendEl = html`<div
-  style="padding-top:52px; font-family:'Roboto',sans-serif; display:flex; flex-direction:column; gap:10px; min-width:160px; user-select:none;"
->
-  <div style="font-size:15px; font-weight:600; color:#333; margin-bottom:2px;">
-    Labor Force Outcome
-  </div>
-  ${colorScale.domain.map(
-    (label, i) =>
-      html`<div
-        data-category="${label}"
-        style="display:flex; align-items:center; gap:10px; cursor:default;"
-        onmouseover=${() => highlight(label)}
-        onmouseout=${() => highlight(null)}
-      >
-        <div
-          style="width:18px; height:18px; background:${colorScale.range[
-            i
-          ]}; flex-shrink:0; border-radius:2px;"
-        ></div>
-        <span style="font-size:15px; color:#222;">${label}</span>
-      </div>`,
-  )}
-</div>`;
-
-display(
-  html`<div style="display:flex; align-items:flex-start; gap:16px;">
-    ${fadeStyle} ${chart} ${legendEl}
-  </div>`,
-);
-```
