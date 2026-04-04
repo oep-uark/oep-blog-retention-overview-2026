@@ -2,6 +2,8 @@
 const labor_market_outcomes = FileAttachment(
   "data/labor-market-outcomes.csv",
 ).csv();
+
+const district_retention = FileAttachment("data/district-retention.csv").csv();
 ```
 
 # Arkansas Teacher Retention 2025-26: A New Normal
@@ -14,8 +16,6 @@ What's behind this plateau? Below, we explore the parts of the picture which are
 
 After an initial rebound from the 2022-23 low point, Arkansas's teacher retention rate has leveled off - still about 1.5 pp below pre-pandemic levels. In 2025-26, roughly 87.3 percent of teachers returned to the classroom. This rate is effectively unchanged from 2024-25, raising the question of whether this is the new normal for retention in the state.
 
-![](images/draft_plots/retention_rate_plot_draft.svg)
-
 ```js
 import { retentionRateChart } from "./components/retention-rate-chart.js";
 display(retentionRateChart(labor_market_outcomes));
@@ -23,10 +23,10 @@ display(retentionRateChart(labor_market_outcomes));
 
 To understand what's behind these rates, we sort teachers based on their employment decisions between the 2024-25 to 2025-26 school years:
 
-- Stayers remained teaching in the same school(s);
-- Movers transferred to a different school or district;
-- Switchers moved to a non-teaching role within Arkansas public schools;
-- Exiters left the Arkansas public school system entirely.
+- <span style="color: blue; font-weight: bold;">Stayers</span> remained teaching in the same school(s);
+- <span style="color: blue; font-weight: bold;">Mover</span> transferred to a different school or district;
+- <span style="color: blue; font-weight: bold;">Switchers</span> moved to a non-teaching role within Arkansas public schools;
+- <span style="color: blue; font-weight: bold;">Exiters</span> left the Arkansas public school system entirely.
 
 In 2025-26:
 
@@ -68,7 +68,12 @@ At the district level, retention recovery remains uneven. Despite increases in l
 
 The scatter plot below shows the district-level change in average retention from the low-point years of 2021-22 and 2022-23 versus the three years of recovery since. Districts highlighted in red were identified by the state as Tier I Geographic Shortage Areas in either [2021-22](https://static.ark.org/eeuploads/adhe-financial/21-22_Final_Geographical_Shortage_Area_List_10.5.21.pdf) or [2022-23](https://sams.adhe.edu/File/22-23%20Geographical%20Teacher%20Shortage%20Area%20List%208.23.22.pdf).
 
-![](images/draft_plots/change_in_retention_plot_draft.svg)
+```js
+import { districtScatterChart } from "./components/district-scatter-chart.js";
+display(districtScatterChart(district_retention));
+```
+
+![test](images/draft_plots/change_in_retention_plot_draft.svg)
 
 Only four of the original shortage area districts reached above-average retention over the last three years. Among the shortage area districts with a prior retention rate below 75 percent, some gained significantly, other declined sharply, but none were able to catch up with the state average retention rate in the recent period.
 

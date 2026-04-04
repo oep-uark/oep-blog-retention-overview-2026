@@ -97,12 +97,12 @@ export function retentionRateChart(data) {
         {
           x: "schoolyear",
           y: "pct",
-          text: [`Pre-pandemic avg: ${preAvg.toFixed(1)}%`],
+          text: [`Pre-pandemic average: ${preAvg.toFixed(1)}%`],
           textAnchor: "end",
-          dx: -6,
+          dx: 20,
           dy: -8,
           fill: REFERENCE_COLOR,
-          fontSize: 13,
+          fontSize: 14,
         },
       ),
       // Era labels — pinned to top, manually positioned over the middle of each era
@@ -116,7 +116,7 @@ export function retentionRateChart(data) {
           y: "pct",
           text: "label",
           fill: (d) => (d.label === "Pre-pandemic" ? "#C0C0C0" : "#7BA3C8"),
-          fontSize: 12,
+          fontSize: 14,
         },
       ),
       // Two separate line segments

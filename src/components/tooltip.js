@@ -3,22 +3,35 @@ import { html } from "npm:htl";
 /**
  * Attaches a custom HTML tooltip to an Observable Plot chart.
  *
- * @param {SVGElement} chart  - The Plot SVG element
- * @param {Array}      points - The data array used to build the chart
+ * When only `x` is provided, snaps to the nearest point along the X axis
+ * (good for line charts). When both `x` and `y` are provided, uses 2D
+ * Euclidean distance and hides the tooltip beyond `maxDist` pixels (good
+ * for scatter plots).
+ *
+ * @param {SVGElement} chart    - The Plot SVG element
+ * @param {Array}      points   - The data array used to build the chart
  * @param {Object}     opts
- *   @param {string}   opts.x      - Field name for the x channel (used to find nearest point)
- *   @param {string}   [opts.y]    - Field name for the y channel (tooltip follows point vertically if provided)
- *   @param {Function} opts.format - (datum) => HTML string for tooltip content
+ *   @param {string}   opts.x        - Field name for the x channel
+ *   @param {string}   [opts.y]      - Field name for the y channel (enables 2D mode)
+ *   @param {Function} opts.format   - (datum) => HTML string for tooltip content
+ *   @param {number}   [opts.maxDist=40] - In 2D mode, hide tooltip beyond this pixel distance
  *
  * @returns {HTMLElement} A container wrapping the chart and tooltip, ready to display()
  *
- * Usage:
+ * Usage (1D, line chart):
  *   return attachTooltip(chart, points, {
  *     x: "schoolyear",
  *     format: (d) => `<strong>${d.schoolyear}</strong><br>Retention Rate: ${d.pct.toFixed(1)}%`,
  *   });
+ *
+ * Usage (2D, scatter chart):
+ *   return attachTooltip(chart, points, {
+ *     x: "trough",
+ *     y: "recent",
+ *     format: (d) => `<strong>${d.district_name}</strong>`,
+ *   });
  */
-export function attachTooltip(chart, points, { x, y = null, format }) {
+export function attachTooltip(chart, points, { x, y = null, format, maxDist = 40 }) {
   const xScale = chart.scale("x");
   const yScale = y ? chart.scale("y") : null;
 
@@ -29,10 +42,20 @@ export function attachTooltip(chart, points, { x, y = null, format }) {
     py: yScale ? yScale.apply(d[y]) : null,
   }));
 
-  function findNearest(mouseX) {
-    return positioned.reduce((prev, curr) =>
-      Math.abs(curr.px - mouseX) < Math.abs(prev.px - mouseX) ? curr : prev
-    );
+  function findNearest(mouseX, mouseY) {
+    if (yScale) {
+      // 2D mode: Euclidean distance
+      return positioned.reduce((prev, curr) => {
+        const dPrev = (prev.px - mouseX) ** 2 + (prev.py - mouseY) ** 2;
+        const dCurr = (curr.px - mouseX) ** 2 + (curr.py - mouseY) ** 2;
+        return dCurr < dPrev ? curr : prev;
+      });
+    } else {
+      // 1D mode: X-axis distance only
+      return positioned.reduce((prev, curr) =>
+        Math.abs(curr.px - mouseX) < Math.abs(prev.px - mouseX) ? curr : prev
+      );
+    }
   }
 
   const tip = html`<div style="
@@ -50,34 +73,40 @@ export function attachTooltip(chart, points, { x, y = null, format }) {
     display: none;
   "></div>`;
 
-  // Container gives the tooltip its absolute-positioning context
   const container = html`<div style="position: relative; display: inline-block;">
     ${chart}${tip}
   </div>`;
 
   chart.addEventListener("pointermove", (event) => {
-    // clientX → chart-relative X avoids issues with child element offsets
-    const mouseX = event.clientX - chart.getBoundingClientRect().left;
-    const { datum, px, py } = findNearest(mouseX);
+    const rect = chart.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const nearest = findNearest(mouseX, mouseY);
 
-    tip.innerHTML = format(datum);
+    // In 2D mode, hide the tooltip when the cursor is too far from any point
+    if (yScale) {
+      const dist = Math.sqrt((nearest.px - mouseX) ** 2 + (nearest.py - mouseY) ** 2);
+      if (dist > maxDist) {
+        tip.style.display = "none";
+        return;
+      }
+    }
+
+    tip.innerHTML = format(nearest.datum);
     tip.style.display = "block";
 
     // Horizontal: default right of cursor, flip left if near right edge
     const chartWidth = chart.offsetWidth;
     const tipWidth = tip.offsetWidth;
-    let left = px + 14;
-    if (left + tipWidth > chartWidth - 12) left = px - tipWidth - 14;
+    let left = nearest.px + 14;
+    if (left + tipWidth > chartWidth - 12) left = nearest.px - tipWidth - 14;
     tip.style.left = `${left}px`;
 
-    // Vertical: above data point if y provided, else fixed near top of chart
-    if (py !== null) {
-      let top = py - tip.offsetHeight - 10;
-      if (top < 8) top = py + 10; // flip below if it would clip the top edge
-      tip.style.top = `${top}px`;
-    } else {
-      tip.style.top = "28px";
-    }
+    // Vertical: above data point (both modes), flip below if it would clip the top
+    const tipY = nearest.py ?? 28;
+    let top = tipY - tip.offsetHeight - 10;
+    if (top < 8) top = tipY + 10;
+    tip.style.top = `${top}px`;
   });
 
   chart.addEventListener("pointerleave", () => {
