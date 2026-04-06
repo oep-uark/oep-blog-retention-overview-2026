@@ -31,26 +31,69 @@
 - Custom HTML tooltip via shared helper (see below)
 
 ### Reusable tooltip helper
-- `src/components/tooltip.js` — `attachTooltip(chart, points, { x, y, format })`
-- Wraps any Plot chart with a custom HTML tooltip: full formatting control including bold text
-- Positions tooltip left/right of cursor depending on available space; flips above/below if
-  `y` channel provided (useful for scatter plots)
-- Works on mobile via pointer events
-- Used by Chart 2; designed to be reused by the district explorer
+- `src/components/tooltip.js` — `attachTooltip(chart, points, opts)`
+- Three modes:
+  - **1D** (`x` only): snaps to nearest point along x axis — good for line charts
+  - **2D** (`x` + `y`): Euclidean distance with `maxDist` cutoff — good for scatter plots
+  - **targetMap** (`targetMap: Map<SVGElement, datum>`): exact hit-test via `event.target` —
+    good for choropleth maps; tooltip follows cursor, always shows correct district
+- `hideOnBackground: true` suppresses tooltip when hovering SVG margin/whitespace
+- Fixed `width: 200px` with text wrapping (not `white-space: nowrap`)
+- Used by all charts
+
+### Charts 3 & 4: Change-from-baseline line charts
+- `src/components/change-from-baseline-chart.js` — single reusable component used for both charts
+- Renders a multi-line chart of pp change from a pre-computed baseline
+- **Deliberately decoupled from baseline logic**: the component is a pure renderer; callers
+  pass in already-transformed `{ x, category, change }` data. The baseline computation
+  (which years are "pre-pandemic", how to collapse them) lives in the page, not the component.
+- `categories` arg (`[{ label, color }]`) drives color scale, line order, and direct end-of-line labels
+- Tooltip snaps to x positions and shows all categories for that year in a single multi-row tooltip,
+  sorted by each category's final-year value (top-to-bottom visual order)
+- `options` arg supports `yDomain`, `yLabel`, `width` overrides
+- Page-level transformation helper `computeBaselineDeltas()` defined once in `index.md`,
+  called twice with different category lists for each chart
+
+### Chart 5: District retention scatter plot
+- `src/components/district-scatter-chart.js`
+- X axis: avg. retention in trough years (2021-22, 2022-23); Y axis: avg. retention in
+  recovery years (2023-24 to 2025-26)
+- Dashed diagonal parity line — districts above improved, below declined
+- Dashed horizontal state average line with annotation
+- Geographic Shortage Area districts highlighted in red; others in gray
+- Hover highlight (gold stroke, larger dot) via `Plot.pointer`; tooltip via `attachTooltip`
+  showing district name, both period rates, and signed pp change
+- Separate data loader: `src/data/district-retention.csv.R`
+- Intercepts `pointerdown` in capture phase to suppress Plot's click-to-stick behavior
+
+### Chart 6: District interactive explorer (map + card)
+- `src/components/district-map.js` + `src/components/district-card.js`
+- Choropleth map: 7-color discrete threshold scale, two-pass `Plot.geo()` rendering
+  (fill pass + stroke pass) to prevent neighbor fills from clipping hover/selection borders
+- Click a district → card updates with name, teacher counts, dot grid, and narrative breakdown
+- Dot grid: ≤100 teachers shows exact count; >100 scales to 100 with largest-remainder rounding.
+  Always 20 dots per row. Built with `d3.create("svg")` (htl blocks innerHTML SVG injection).
+- Tooltip uses `targetMap` mode — exact hit-test via `event.target`, cursor-aligned positioning.
+  `hideOnBackground: true` suppresses tooltip over map margins.
+- District names come from GeoJSON `NAME` field (correctly cased). `formatName()` in
+  `src/components/utils.js` strips suffix variants ("School District", "School Dist.", "Schools").
+- Data loader: `src/data/district-retention-2026.json.R`
+- GeoJSON simplified via `tigris::school_districts(state = "AR", cb = TRUE)` — cartographic
+  boundary file (~500 KB vs 11 MB TIGER/Line); regenerate by running the tigris script once.
 
 ---
 
 ## What's still needed
 
-### Charts remaining (all have draft SVGs in `drafts/draft_plots/`)
-- **Switcher/Exiter/Retired change from baseline** — line chart, `switcher_exiter_retired_change_from_base_plot_draft.svg`
-- **Stayers/Movers change from baseline** — line chart, `stayers_movers_change_from_base_plot_draft.svg`
-- **District scatter plot** — change in retention vs. level, with shortage area highlighting, `change_in_retention_plot_draft.svg`
-- **District interactive explorer** — the centerpiece tool; needs its own data loader
+### Infrastructure remaining
 
 ### Infrastructure remaining
 - GitHub Pages deploy not yet configured or tested
 - WordPress iframe embed pattern not yet validated end-to-end
+
+### Content remaining
+- Remove the placeholder draft SVG image (`![test](images/draft_plots/...)`) from index.md
+  once the scatter chart is confirmed working in production
 
 ---
 
@@ -65,6 +108,25 @@
   and for charts that don't need pixel-perfect custom layout.
 - **Component modules** (`src/components/*.js`) keep markdown pages clean and make chart
   logic reusable across pages.
+
+### Geo / choropleth maps
+- **Two-pass `Plot.geo()` rendering** is required to prevent neighbor district fills from
+  clipping hover/selection borders. First mark: fills only (`stroke: "none"`). Second mark:
+  strokes only (`fill: "transparent"`, `pointer-events: all`). Stroke paths are at indices
+  `n..2n-1` in `querySelectorAll("path")` results (after filtering out `<defs>`).
+- **Tooltip on geo charts**: `chart.scale("x")` doesn't exist on choropleth maps. Do NOT
+  use the centroid-proximity approach — it picks the wrong district near borders. Use the
+  `targetMap` mode in `attachTooltip` instead: build a `Map<SVGElement, datum>` from stroke
+  paths and pass it as `targetMap`. Perfectly accurate, cursor-aligned.
+- **GeoJSON file size matters**: Census TIGER/Line files (~11 MB) cause 3-4 second load times.
+  Use `tigris::school_districts(state = "AR", cb = TRUE)` for the pre-simplified cartographic
+  boundary file (~500 KB). Regenerate by running the script once; commit the result as a
+  static file (no build-time data loader needed).
+- **htl blocks SVG string injection**: `${{ innerHTML: svgString }}` is sanitized for XSS.
+  Build SVG DOM elements with `d3.create("svg")` and embed the node directly in htl templates.
+- **District names**: use the GeoJSON `NAME` field, not the CCD crosswalk (`lea_name`).
+  The crosswalk stores names in ALL CAPS; the GeoJSON has correct mixed-case (preserving
+  proper nouns like "McGehee", "DeWitt"). Join on `GEOID`/`geoid`.
 
 ### Where it fights you
 - **Plot.tip doesn't support rich text.** SVG can't bold text inline; `Plot.tip`'s `title`
@@ -86,6 +148,13 @@
   to index elements, then a dynamic CSS `<style>` block to drive visual state.
 - **Plot vs. raw D3**: for charts requiring very precise layout control, dropping down to
   raw D3 may be less painful than fighting Plot's constraints.
+- **Margin sizing for rotated tick labels** requires trial and error. `marginBottom` needs
+  to be large enough to accommodate the downward extent of long rotated labels (e.g.,
+  "Pre-pandemic avg." at -35° needs ~100px). `marginLeft` needs room for both tick labels
+  and the rotated y-axis label — 75px works; 100px is too wide.
+- **Component/page responsibility split**: for reusable chart components, keep data
+  transformations in the page (visible, inspectable, easy to adapt) and keep components
+  as pure renderers. The change-from-baseline chart is the clearest example of this pattern.
 
 ### The honest trade-off vs. Svelte
 Svelte/LayerCake gives more layout control but requires building axis components from scratch.

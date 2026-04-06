@@ -4,24 +4,30 @@ const labor_market_outcomes = FileAttachment(
 ).csv();
 
 const district_retention = FileAttachment("data/district-retention.csv").csv();
+
+const district_retention_2026 = FileAttachment(
+  "data/district-retention-2026.json",
+).json();
+
+const ar_districts = FileAttachment("data/ar-school-districts.geojson").json();
 ```
 
 # Arkansas Teacher Retention 2025-26: A New Normal
 
-In [last year's post](https://oep.uark.edu/2024-25-arkansas-teacher-retention-statewide-stability-amid-ongoing-local-challenges/), we highlighted early signs that Arkansas teacher retention recovery may have plateaued below pre-pandemic levels. New data for the 2025-26 school year confirms this. For the second straight year, approximately 12.7 percent of Arkansas teachers left the classroom, a rate that continues to sit will above the roughly 11 percent rate typical before the pandemic.
+In [last year's post](https://oep.uark.edu/2024-25-arkansas-teacher-retention-statewide-stability-amid-ongoing-local-challenges/), we saw early signs that Arkansas teacher retention recovery may have plateaued below pre-pandemic levels. New data for the 2025-26 school year confirms this. Roughly 12.7 percent of Arkansas teachers left the classroom for the second straight year - hovering above the 11 percent rate typical before the pandemic.
 
-What's behind this plateau? Below, we explore the parts of the picture which are returning to normal - and one that is not.
+What's behind this plateau? Many parts of the teacher labor market are returning to normal. Below, we explore those that are - and one that is not.
 
 ## Retention Rates Remain Low in 2025-26
 
-After an initial rebound from the 2022-23 low point, Arkansas's teacher retention rate has leveled off - still about 1.5 pp below pre-pandemic levels. In 2025-26, roughly 87.3 percent of teachers returned to the classroom. This rate is effectively unchanged from 2024-25, raising the question of whether this is the new normal for retention in the state.
+After initially rebounding from a 2022-23 low, Arkansas's teacher retention rate has leveled off about 1.5 pp below pre-pandemic levels. In 2025-26, roughly 87.3 percent of teachers returned to the classroom. This rate is unchanged from 2024-25, raising the question of whether increased teacher turnover is the new normal for the state.
 
 ```js
 import { retentionRateChart } from "./components/retention-rate-chart.js";
 display(retentionRateChart(labor_market_outcomes));
 ```
 
-To understand what's behind these rates, we sort teachers based on their employment decisions between the 2024-25 to 2025-26 school years:
+To understand what's behind these rates, we sort teachers by their employment decisions between the 2024-25 and 2025-26 school years:
 
 - <span style="color: blue; font-weight: bold;">Stayers</span> remained teaching in the same school(s);
 - <span style="color: blue; font-weight: bold;">Mover</span> transferred to a different school or district;
@@ -31,7 +37,7 @@ To understand what's behind these rates, we sort teachers based on their employm
 In 2025-26:
 
 - 77.1 percent of teachers were Stayers;
-- 10.2 percent of teachers were Movers who remained teaching in a new school - 5.3 percent within the same district and 4.9 percent in a new district;
+- 10.2 percent of teachers were Movers who kept teaching but in a new school - 5.3 percent within the same district and 4.9 percent in a new district;
 - 3.5 percent of teachers were Switchers;
 - 9.1 percent of teachers were Exiters - 6.4 percent left the Arkansas public school workforce and 2.7 percent retired.
 
@@ -40,11 +46,11 @@ import { retentionBarChart } from "./components/retention-bar-chart.js";
 display(retentionBarChart(labor_market_outcomes));
 ```
 
-The overall retention rate of 87.3 percent counts both Movers and Stayers, since teachers in both remained teaching in Arkansas public schools in 2025-26. But the stability in this overall rate hides a few important stories of what's happening on the ground.
+The statewide retention rate of 87.3 percent includes all Movers and Stayers, since both continued to teach in Arkansas public schools in 2025-26. But stability in overall turnovers hides key patterns on the ground.
 
 ## Exits, Not Retirements
 
-Retirements are not driving the decline in retention rates. In 2025-26, approximately 2.7 percent of teachers retired. This mirrors last year's rate exactly, and sits slightly below pre-pandemic levels.
+Retirements are not driving decreased retention. In 2025-26, approximately 2.7 percent of teachers retired. This mirrors last year's rate exactly and sits slightly below pre-pandemic levels.
 
 ```js
 import { changeFromBaselineChart } from "./components/change-from-baseline-chart.js";
@@ -52,7 +58,12 @@ import * as d3 from "npm:d3";
 
 // Pre-pandemic school years used as the baseline for change calculations
 const PRE_PANDEMIC_YEARS = new Set([
-  "2014-15", "2015-16", "2016-17", "2017-18", "2018-19", "2019-20",
+  "2014-15",
+  "2015-16",
+  "2016-17",
+  "2017-18",
+  "2018-19",
+  "2019-20",
 ]);
 
 // Transforms raw labor-market-outcomes data into { x, category, change } rows
@@ -80,7 +91,11 @@ function computeBaselineDeltas(data, categoryLabels) {
     if (PRE_PANDEMIC_YEARS.has(row.schoolyear)) {
       if (!seenBaseline.has(row.category)) {
         seenBaseline.add(row.category);
-        transformed.push({ x: "Pre-pandemic avg.", category: row.category, change: 0 });
+        transformed.push({
+          x: "Pre-pandemic avg.",
+          category: row.category,
+          change: 0,
+        });
       }
     } else {
       transformed.push({
@@ -105,7 +120,7 @@ const departureDelta = computeBaselineDeltas(
 display(changeFromBaselineChart(departureDelta, departureCategories));
 ```
 
-Instead, exits among early- and mid-career teachers are likely keeping teacher retention rates low. This year, roughly 6.4 percent of teachers exited the workforce for non-retirement reasons. This remains over 1 pp higher than before the pandemic, and shows no decline from the past three years.
+Instead, exits among early- and mid-career teachers are behind increased turnover. This year, about 6.4 percent of non-retiring teachers exited the workforce. This is over 1 pp higher than before the pandemic - the same high rate we've seen for the past three years.
 
 The remaining retention gap is driven by teachers switching to non-teaching roles within Arkansas public schools. In 2025-26, the Switcher rate declined by .2 pp, inching back towards pre-pandemic levels. This change continues a slow but steady pattern of decline - this rate is now down .8 percentage points since its 2022-23 peak.
 
@@ -141,13 +156,61 @@ import { districtScatterChart } from "./components/district-scatter-chart.js";
 display(districtScatterChart(district_retention));
 ```
 
-![test](images/draft_plots/change_in_retention_plot_draft.svg)
-
 Only four of the original shortage area districts reached above-average retention over the last three years. Among the shortage area districts with a prior retention rate below 75 percent, some gained significantly, other declined sharply, but none were able to catch up with the state average retention rate in the recent period.
 
 Below, you can review our updated interactive tool to examine how 2025-26 retention looks in your district.
 
-![Tool will go here]()
+```js
+import { districtMap } from "./components/district-map.js";
+import { districtCard } from "./components/district-card.js";
+import { html } from "npm:htl";
+
+const wrapper = html`<div
+  style="
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  grid-template-rows: auto 1fr;
+  border: 1.5px solid #000;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 880px;
+  font-family: Roboto, sans-serif;
+"
+>
+  <div
+    style="
+    grid-column: 1 / -1;
+    padding: 14px 18px 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+  "
+  >
+    2025–26 Teacher Retention Rates by District
+  </div>
+  <div class="map-slot"></div>
+  <div class="card-slot" style="box-sizing: border-box;"></div>
+</div>`;
+
+function updateCard(geoid) {
+  const slot = wrapper.querySelector(".card-slot");
+  slot.innerHTML = "";
+  const d = geoid
+    ? district_retention_2026.find((r) => r.geoid === geoid)
+    : null;
+  slot.appendChild(districtCard(d));
+}
+
+updateCard(null);
+
+wrapper.querySelector(".map-slot").appendChild(
+  districtMap(ar_districts, district_retention_2026, {
+    onSelect: updateCard,
+  }),
+);
+
+display(wrapper);
+```
 
 ## What This Plateau Means
 

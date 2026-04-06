@@ -133,7 +133,7 @@ district_scatter <- district_scatter |>
     )
   )
 
-# --- Load CCD crosswalk for district names and geography ---
+# --- Load CCD crosswalk for county/locale metadata only ---
 # educationdata_arkansas_2023.csv is a static file in src/data/,
 # copied from drafts/raw_data/. leaid read as character to preserve leading zeros.
 cxwalk <- read_csv(
@@ -144,7 +144,6 @@ cxwalk <- read_csv(
   select(
     geoid             = leaid,
     district_lea      = state_leaid,
-    district_name     = lea_name,
     urban_centric_locale,
     county_name
   ) |>
@@ -152,17 +151,17 @@ cxwalk <- read_csv(
     district_lea = as.numeric(gsub("AR-", "", district_lea))
   )
 
-# --- Load shapefile GEOIDs to filter to geographic school districts only ---
+# --- Load GeoJSON for correctly-cased district names and GEOID filter ---
 # Excludes charters, coops, and career centers that appear in the retention data
 # but don't have geographic boundaries in the Census shapefile.
-ar_district_geoids <- sf::read_sf("src/data/ar-school-districts.geojson") |>
+geojson_names <- sf::read_sf("src/data/ar-school-districts.geojson") |>
   sf::st_drop_geometry() |>
-  pull(GEOID)
+  select(geoid = GEOID, district_name = NAME)
 
 # --- Join crosswalk and write output ---
 output <- district_scatter |>
   left_join(cxwalk, by = c("districtlea_num" = "district_lea")) |>
-  filter(geoid %in% ar_district_geoids) |>
+  inner_join(geojson_names, by = "geoid") |>
   select(
     districtlea,
     geoid,

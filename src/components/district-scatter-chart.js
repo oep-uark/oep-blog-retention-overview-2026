@@ -2,6 +2,7 @@ import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import { html } from "npm:htl";
 import { attachTooltip } from "./tooltip.js";
+import { formatName } from "./utils.js";
 
 const SHORTAGE_COLOR = "#C0392B";
 const NOT_SHORTAGE_COLOR = "#888";
@@ -129,7 +130,7 @@ export function districtScatterChart(data) {
       const sign = change >= 0 ? "+" : "−";
       const color = change >= 0 ? "#2e7d32" : "#c0392b";
       return `
-        <strong>${d.district_name}</strong><br>
+        <strong>${formatName(d.district_name)}</strong><br>
         2021–22 and 2022–23: ${d.trough.toFixed(1)}%<br>
         2023–24 to 2025–26: ${d.recent.toFixed(1)}%<br>
         <span style="color:${color}; font-weight:600">
