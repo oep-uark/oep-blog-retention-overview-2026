@@ -1,6 +1,7 @@
 import * as d3 from "npm:d3";
 import { html } from "npm:htl";
 import { formatName } from "./utils.js";
+import { FONT } from "./theme.js";
 
 // Colors matching the retention-bar-chart.js palette exactly
 const COLORS = {
@@ -97,7 +98,7 @@ export function districtCard(data) {
   if (!data) {
     return html`<div
       style="
-        font-family: Roboto, sans-serif;
+        font-family: ${FONT};
         color: #888;
         font-size: 14px;
         font-style: italic;
@@ -156,7 +157,7 @@ export function districtCard(data) {
 
   return html`<div
     style="
-      font-family: Roboto, sans-serif;
+      font-family: ${FONT};
       color: #222;
       padding: 14px 16px;
       font-size: 13px;

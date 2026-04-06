@@ -1,6 +1,8 @@
 import * as Plot from "npm:@observablehq/plot";
 import { html } from "npm:htl";
 import { attachTooltip } from "./tooltip.js";
+import { CHART_STYLE, GRID_COLOR } from "./theme.js";
+import { makeLegend } from "./utils.js";
 
 /**
  * Renders a multi-line chart showing change from a pre-computed baseline.
@@ -65,10 +67,7 @@ export function changeFromBaselineChart(data, categories, options = {}) {
     marginRight: 20,
     marginBottom: width < 700 ? 70 : 50,
     marginTop: 20,
-    style: {
-      fontFamily: "Roboto, sans-serif",
-      fontSize: "15px",
-    },
+    style: CHART_STYLE,
     x: {
       label: null,
       tickSize: 0,
@@ -91,7 +90,7 @@ export function changeFromBaselineChart(data, categories, options = {}) {
     marks: [
       // Gridlines — light, subordinate to data
       Plot.gridY({
-        stroke: "#ddd",
+        stroke: GRID_COLOR,
         strokeWidth: 1,
         strokeOpacity: 1,
       }),
@@ -145,26 +144,10 @@ export function changeFromBaselineChart(data, categories, options = {}) {
     },
   });
 
-  const legendEl = html`<div
-    style="
-      padding: 6px 0 2px;
-      font-family: 'Roboto', sans-serif;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px 20px;
-    "
-  >
-    ${categories.map(
-      (c) =>
-        html`<div style="display:flex; align-items:center; gap:8px;">
-          <div
-            style="width:24px; height:3px; background:${c.color}; border-radius:2px; flex-shrink:0;"
-          ></div>
-          <span style="font-size:13px; color:#444;">${c.label}</span>
-        </div>`,
-    )}
-  </div>`;
+  const legendEl = makeLegend(
+    categories.map((c) => ({ label: c.label, color: c.color })),
+    { type: "line" },
+  );
 
   return html`<div>${container}${legendEl}</div>`;
 }

@@ -1,5 +1,7 @@
 import * as Plot from "npm:@observablehq/plot";
 import { html } from "npm:htl";
+import { CHART_STYLE } from "./theme.js";
+import { makeLegend } from "./utils.js";
 
 const categories = [
   { key: "stayer", label: "Stayer" },
@@ -21,7 +23,7 @@ export function retentionBarChart(data, { width = 640 } = {}) {
     height: Math.round(width * 0.55),
     marginLeft: 60,
     marginBottom: width < 600 ? 60 : 40,
-    style: { fontFamily: "Roboto, sans-serif", fontSize: "14px" },
+    style: CHART_STYLE,
     x: { label: null, type: "band", tickSize: 0, tickRotate: width < 600 ? -30 : 0 },
     y: {
       label: "% of Prior-Year Teachers",
@@ -86,34 +88,10 @@ export function retentionBarChart(data, { width = 640 } = {}) {
   });
   chart.addEventListener("mouseleave", () => highlight(null));
 
-  const legendEl = html`<div
-    style="
-      padding: 10px 0 4px;
-      font-family: 'Roboto', sans-serif;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px 20px;
-      user-select: none;
-    "
-  >
-    ${colorScale.domain.map(
-      (label, i) =>
-        html`<div
-          data-category="${label}"
-          style="display:flex; align-items:center; gap:7px; cursor:default;"
-          onmouseover=${() => highlight(label)}
-          onmouseout=${() => highlight(null)}
-        >
-          <div
-            style="width:14px; height:14px; background:${colorScale.range[
-              i
-            ]}; flex-shrink:0; border-radius:2px;"
-          ></div>
-          <span style="font-size:13px; color:#222;">${label}</span>
-        </div>`,
-    )}
-  </div>`;
+  const legendEl = makeLegend(
+    colorScale.domain.map((label, i) => ({ label, color: colorScale.range[i] })),
+    { onHover: highlight },
+  );
 
   return html`<div style="display:flex; flex-direction:column;">
     ${fadeStyle} ${chart} ${legendEl}

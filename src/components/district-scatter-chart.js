@@ -2,7 +2,8 @@ import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import { html } from "npm:htl";
 import { attachTooltip } from "./tooltip.js";
-import { formatName } from "./utils.js";
+import { formatName, makeLegend } from "./utils.js";
+import { CHART_STYLE, GRID_COLOR } from "./theme.js";
 
 const SHORTAGE_COLOR = "#C0392B";
 const NOT_SHORTAGE_COLOR = "#888";
@@ -27,10 +28,7 @@ export function districtScatterChart(data, { width = 640 } = {}) {
     marginLeft: 55,
     marginBottom: 55,
     marginTop: 24,
-    style: {
-      fontFamily: "Roboto, sans-serif",
-      fontSize: "14px",
-    },
+    style: CHART_STYLE,
     x: {
       label: "Avg. Retention Rate, 2021–22 and 2022–23",
       labelAnchor: "center",
@@ -48,8 +46,8 @@ export function districtScatterChart(data, { width = 640 } = {}) {
       tickSize: 0,
     },
     marks: [
-      Plot.gridX({ stroke: "#e0e0e0", strokeWidth: 1 }),
-      Plot.gridY({ stroke: "#e0e0e0", strokeWidth: 1 }),
+      Plot.gridX({ stroke: GRID_COLOR, strokeWidth: 1 }),
+      Plot.gridY({ stroke: GRID_COLOR, strokeWidth: 1 }),
 
       // Diagonal parity line — districts above this line improved, below declined
       Plot.line(
@@ -140,32 +138,10 @@ export function districtScatterChart(data, { width = 640 } = {}) {
     },
   });
 
-  // --- Legend ---
-  const legend = html`<div
-    style="
-      width: ${width}px;
-      margin-top: 12px;
-      font-family: 'Roboto', sans-serif;
-      font-size: 13px;
-      color: #444;
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-    "
-  >
-    <div style="display:flex; align-items:center; gap:8px;">
-      <div
-        style="width:10px; height:10px; border-radius:50%; background:${NOT_SHORTAGE_COLOR}; opacity:0.75;"
-      ></div>
-      Not a Shortage District
-    </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <div
-        style="width:10px; height:10px; border-radius:50%; background:${SHORTAGE_COLOR}; opacity:0.75;"
-      ></div>
-      Shortage District (2021–22 or 2022–23)
-    </div>
-  </div>`;
+  const legend = makeLegend([
+    { label: "Not a Shortage District", color: NOT_SHORTAGE_COLOR },
+    { label: "Shortage District (2021–22 or 2022–23)", color: SHORTAGE_COLOR },
+  ]);
 
   return html`<div>${container}${legend}</div>`;
 }

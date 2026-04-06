@@ -1,6 +1,7 @@
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 import { attachTooltip } from "./tooltip.js";
+import { CHART_STYLE, GRID_COLOR, ANNOTATION_COLOR } from "./theme.js";
 
 const PRE_YEARS = new Set([
   "2014-15",
@@ -17,7 +18,6 @@ const RETAINED = new Set([
 ]);
 
 const ERA_COLORS = { pre: "#AAAAAA", post: "#4A6FA5" };
-const REFERENCE_COLOR = "#B84A00";
 
 export function retentionRateChart(data, { width = 640 } = {}) {
   // Sum the three retained categories by year → one retention rate per year
@@ -50,10 +50,7 @@ export function retentionRateChart(data, { width = 640 } = {}) {
     marginLeft: 60,
     marginBottom: width < 600 ? 60 : 40,
     marginTop: 20,
-    style: {
-      fontFamily: "Roboto, sans-serif",
-      fontSize: "15px",
-    },
+    style: CHART_STYLE,
     x: { label: null, tickSize: 0, tickRotate: width < 600 ? -30 : 0, type: "point" },
     y: {
       label: "Statewide Retention Rate",
@@ -71,7 +68,7 @@ export function retentionRateChart(data, { width = 640 } = {}) {
     marks: [
       // Grid lines — strokeOpacity: 1 overrides any theme inheritance
       Plot.gridY([80, 85, 90, 95, 100], {
-        stroke: "#bbb",
+        stroke: GRID_COLOR,
         strokeWidth: 1,
         strokeOpacity: 1,
       }),
@@ -87,7 +84,7 @@ export function retentionRateChart(data, { width = 640 } = {}) {
       ),
       // Pre-pandemic average reference line
       Plot.ruleY([preAvg], {
-        stroke: REFERENCE_COLOR,
+        stroke: ANNOTATION_COLOR,
         strokeWidth: 1.5,
         strokeDasharray: "5,4",
       }),
@@ -101,7 +98,7 @@ export function retentionRateChart(data, { width = 640 } = {}) {
           textAnchor: "end",
           dx: 20,
           dy: -8,
-          fill: REFERENCE_COLOR,
+          fill: ANNOTATION_COLOR,
           fontSize: 14,
         },
       ),

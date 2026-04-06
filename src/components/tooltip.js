@@ -1,4 +1,5 @@
 import { html } from "npm:htl";
+import { FONT } from "./theme.js";
 
 /**
  * Attaches a custom HTML tooltip to an Observable Plot chart.
@@ -68,7 +69,7 @@ export function attachTooltip(chart, points, { x, y = null, format, maxDist = 40
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 8px 12px;
-    font-family: 'Roboto', sans-serif;
+    font-family: ${FONT};
     font-size: 13px;
     line-height: 1.6;
     width: 200px;

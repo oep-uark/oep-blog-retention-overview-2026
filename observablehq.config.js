@@ -20,9 +20,12 @@ export default {
   head: `
     <link rel="icon" href="observable.png" type="image/png" sizes="32x32">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-      :root { --sans-serif: "Roboto", sans-serif; }
+      :root {
+        --sans-serif: "Overpass", sans-serif;
+        --serif: "Overpass", sans-serif;
+      }
       main {
         max-width: 950px !important;
         margin-left: auto;
