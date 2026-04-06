@@ -222,7 +222,7 @@ display(wrapper);
 
 ## What This Plateau Means
 
-Several years of post-pandemic data now reveal a new normal for Arkansas schools: lower retention rates, driven by higher exit rates among early- and mid-career teachers. But the most consistent pattern is that the teacher labor market continues to evolve. Teachers stay more and move less, switcher rates decline, and districts recover at uneven speeds.
+Several years of post-pandemic data now reveal a new normal for Arkansas schools: lower retention rates, driven by higher exits among early- and mid-career teachers. But the most consistent pattern is that the teacher labor market continues to evolve. Teachers stay more and move less, switcher rates decline, and districts recover at uneven speeds.
 
 Facing these challenges, Arkansas enacted major policies to bolster the teaching workforce - and they are showing signs of success. Early evidence suggests that [LEARNS salary increases](https://edre.uark.edu/_resources/pdf/changes-in-teacher-salaries-under-the-arkansas-learns-act-research-brief_nov2_final_rb2023-02.pdf) have [improved teacher retention](https://oep.uark.edu/raising-the-floor-early-evidence-suggests-learns-salary-increases-improved-teacher-retention/), particularly in rural and high-needs districts. Arkansas teachers are reporting [high levels of job satisfaction and success](https://oep.uark.edu/new-survey-results-show-arkansas-teachers-report-high-satisfaction-with-room-to-strengthen-support/).
 
