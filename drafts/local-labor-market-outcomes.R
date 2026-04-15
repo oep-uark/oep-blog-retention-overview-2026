@@ -154,7 +154,8 @@ cxwalk <- readr::read_csv("raw_data/educationdata_arkansas_2023.csv") %>%
     urban_centric_locale,
     county_code,
     county_name,
-    congress_district_id
+    congress_district_id,
+    agency_type
     #enrollment
   ) %>%
   mutate(
@@ -171,7 +172,7 @@ ar_district_w_data <- ar_districts |>
   left_join(district_scatter, by = c("district_lea" = "districtlea_num")) %>%
   mutate(
     category = case_when(
-      district_lea %in%
+      districtlea %in%
         c(
           "5201000",
           "4702000",
