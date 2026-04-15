@@ -6,7 +6,7 @@
 # Output columns:
 #   schoolyear  - e.g. "2014-15"
 #   category    - Stayer, Mover - Same District, Mover - New District, Switcher, Exiter, Retired # nolint
-#   value       - proportion (0-1)
+#   value       - percentage (0-100)
 #   label       - formatted percentage string e.g. "79.0"
 
 library(data.table)
@@ -23,45 +23,40 @@ data_path <- Sys.getenv(
   unset = "/Users/roymckenzie/Library/CloudStorage/Box-Box/0 - Arkansas Projects/Projects/Teacher Pipeline/Teacher Retention/0_data/Classroom and Inclusion SPED Teachers/teacher_workforce_transitions_classroom and inclusion SPED_12-18-25.csv" # nolint
 )
 
-# --- Helper ---
-clean_names <- function(df) {
-  df %>% setNames(tolower(gsub("[ _.\\\\/]", "", names(.)))) # nolint
-}
-
 # --- Load and prep data ---
 teacher_lm <- fread(data_path,
   colClasses = "character",
   na.strings = c("", "NA")
 ) |>
-  clean_names() |>
-  mutate(fiscalyear = as.integer(fiscalyear))
+  janitor::clean_names() |>
+  mutate(fiscal_year = as.integer(fiscal_year))
 
 # --- Compute labor force outcomes for prior-year teachers ---
 graph_data <- teacher_lm %>%
-  filter(fiscalyear > 2014) %>%
-  filter(lagteacher == TRUE) %>%
+  filter(fiscal_year > 2014) %>%
+  filter(lag_teacher == TRUE) %>%
   mutate(
-    lfexiterretired = (lfoutcome == "Exiter" & lfexiterretired == 1),
-    lfexiterother = (lfoutcome == "Exiter" & lfexiterretired == 0),
-    lfmovernewdistrict = (lfoutcome == "Mover" & lfmovernewdistrict == 1),
-    lfmoversamedistrict = (lfoutcome == "Mover" & lfmovernewdistrict == 0),
-    lfswitcher = (lfoutcome == "Switcher"),
-    lfstayer = (lfoutcome == "Stayer")
+    lf_exiter_retired = (lf_outcome == "Exiter" & lf_exiter_retired == 1),
+    lf_exiter_other = (lf_outcome == "Exiter" & lf_exiter_retired == 0),
+    lf_mover_new_district = (lf_outcome == "Mover" & lf_mover_new_district == 1),
+    lf_mover_same_district = (lf_outcome == "Mover" & lf_mover_new_district == 0),
+    lf_switcher = (lf_outcome == "Switcher"),
+    lf_stayer = (lf_outcome == "Stayer")
   ) %>%
-  group_by(fiscalyear) %>%
+  group_by(fiscal_year) %>%
   summarise(
-    Retired = mean(lfexiterretired, na.rm = TRUE),
-    Exiter = mean(lfexiterother, na.rm = TRUE),
-    Switcher = mean(lfswitcher, na.rm = TRUE),
-    `Mover - New District` = mean(lfmovernewdistrict, na.rm = TRUE),
-    `Mover - Same District` = mean(lfmoversamedistrict, na.rm = TRUE),
-    Stayer = mean(lfstayer, na.rm = TRUE),
+    Retired = mean(lf_exiter_retired, na.rm = TRUE),
+    Exiter = mean(lf_exiter_other, na.rm = TRUE),
+    Switcher = mean(lf_switcher, na.rm = TRUE),
+    `Mover - New District` = mean(lf_mover_new_district, na.rm = TRUE),
+    `Mover - Same District` = mean(lf_mover_same_district, na.rm = TRUE),
+    Stayer = mean(lf_stayer, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   mutate(
-    schoolyear = paste0(fiscalyear - 1, "-", substr(fiscalyear, 3, 4))
+    schoolyear = paste0(fiscal_year - 1, "-", substr(fiscal_year, 3, 4))
   ) %>%
-  select(-fiscalyear) %>%
+  select(-fiscal_year) %>%
   pivot_longer(
     cols = c(
       Retired, Exiter, Switcher,

@@ -3,6 +3,8 @@ const labor_market_outcomes = FileAttachment(
   "data/labor-market-outcomes.csv",
 ).csv();
 
+const exiter_experience = FileAttachment("data/exiter-experience.csv").csv();
+
 const district_retention = FileAttachment("data/district-retention.csv").csv();
 
 const district_retention_2026 = FileAttachment(
@@ -44,8 +46,18 @@ In 2025-26:
 The statewide retention rate combines all Movers and Stayers, since both groups remain teaching in Arkansas public schools. But stability in this overall rate obscures key patterns on the ground.
 
 ```js
-import { retentionBarChart } from "./components/retention-bar-chart.js";
-display(retentionBarChart(labor_market_outcomes, { width }));
+import { stackedBarChart } from "./components/stacked-bar-chart.js";
+
+const RETENTION_CATEGORIES = [
+  { label: "Stayer",                color: "#053061", textColor: "white" },
+  { label: "Mover - Same District", color: "#2166AC", textColor: "white" },
+  { label: "Mover - New District",  color: "#92C5DE", textColor: "black" },
+  { label: "Switcher",              color: "#F4A582", textColor: "black" },
+  { label: "Exiter",                color: "#B2182B", textColor: "white" },
+  { label: "Retired",               color: "#67001F", textColor: "white" },
+];
+
+display(stackedBarChart(labor_market_outcomes, RETENTION_CATEGORIES, { width }));
 ```
 
 ## Exits, Not Retirements
@@ -124,6 +136,37 @@ display(
 
 Instead, exits among early- and mid-career teachers underlie increased turnover. This year, about 6.4 percent of teachers exited the Arkansas public school workforce. This is over 1 percentage point higher than before the pandemic - the same elevated rate we've seen for the past three years.
 
+```js
+const EXPERIENCE_CATEGORIES = [
+  { label: "0-3 years",   color: "#DEEBF7", textColor: "black" },
+  { label: "4-10 years",  color: "#9ECAE1", textColor: "black" },
+  { label: "11-20 years", color: "#3182BD", textColor: "white" },
+  { label: "20+ years",   color: "#08519C", textColor: "white" },
+];
+
+// Collapse pre-pandemic years into a single averaged baseline bar,
+// matching the visual convention used in the line chart above.
+const experienceLabels = EXPERIENCE_CATEGORIES.map((c) => c.label);
+const prePandemicAvg = experienceLabels.map((cat) => {
+  const rows = exiter_experience.filter(
+    (d) => PRE_PANDEMIC_YEARS.has(d.schoolyear) && d.category === cat,
+  );
+  const avg = d3.mean(rows, (d) => +d.value);
+  return { schoolyear: "Pre-pandemic avg.", category: cat, value: avg, label: avg.toFixed(1) };
+});
+const postPandemicYears = exiter_experience.filter(
+  (d) => !PRE_PANDEMIC_YEARS.has(d.schoolyear),
+);
+const exiter_experience_rolled = [...prePandemicAvg, ...postPandemicYears];
+
+display(stackedBarChart(exiter_experience_rolled, EXPERIENCE_CATEGORIES, {
+  width,
+  height: Math.round(width * 0.4),
+  yLabel: "% of Non-Retiree Exiters",
+  caption: "Each bar represents 100% of non-retiree exiters that year, broken down by years of teaching experience.",
+}));
+```
+
 Switchers drive the remaining retention gap. In 2025-26, the rate of teachers switching to non-teaching public school roles dropped by .2 pp, inching back towards pre-pandemic levels. This decrease continues a slow but steady pattern of decline - the Switcher rate is now down .8 percentage points from its 2022-23 peak.
 
 [Last year](https://oep.uark.edu/2024-25-arkansas-teacher-retention-statewide-stability-amid-ongoing-local-challenges/), we discussed how the January 2025 expiration of Federal ESSER (Elementary and Secondary School Emergency Relief) funds could lead to a dip in the Switcher rate, as some Arkansas districts may have used these funds for new non-teaching roles. That the Switcher rate remains elevated this year suggests some rigidity in districts' response to this expiration. Next year's data should reveal more of districts' adjustment to this funding loss.
@@ -181,7 +224,7 @@ const wrapper = html`<div
   overflow: hidden;
   box-sizing: border-box;
   width: 100%;
-  font-family: Roboto, sans-serif;
+  font-family: Overpass, sans-serif;
 "
 >
   <div
