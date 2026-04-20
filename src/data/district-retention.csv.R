@@ -104,7 +104,7 @@ district_scatter <- district_retention_all |>
   mutate(
     period = case_when(
       fiscal_year %in% PRE_PANDEMIC_YEARS ~ "prepandemic",
-      fiscal_year %in% RECENT_YEARS       ~ "recent"
+      fiscal_year %in% RECENT_YEARS ~ "recent"
     )
   ) |>
   group_by(districtlea) |>

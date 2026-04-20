@@ -16,11 +16,11 @@ const ar_districts = FileAttachment("data/ar-school-districts.geojson").json();
 
 # Arkansas Teacher Retention 2025-26: A New Normal
 
-In [last year's post](https://oep.uark.edu/2024-25-arkansas-teacher-retention-statewide-stability-amid-ongoing-local-challenges/), we saw early signs that Arkansas teacher retention may have plateaued below pre-pandemic levels. New data for the 2025-26 school year confirms this finding. For the second straight year, roughly <b>12.7 percent</b> of Arkansas teachers left the classroom - still almost <b>2 percentage points</b> above the typical pre-pandemic rate. This leveling-off is despite [high reported levels of teacher job satisfaction](https://oep.uark.edu/new-survey-results-show-arkansas-teachers-report-high-satisfaction-with-room-to-strengthen-support/) and early evidence that [LEARNS salary raises improved teacher retention](https://oep.uark.edu/raising-the-floor-early-evidence-suggests-learns-salary-increases-improved-teacher-retention/).
+In [last year's post](https://oep.uark.edu/2024-25-arkansas-teacher-retention-statewide-stability-amid-ongoing-local-challenges/), we saw early signs that Arkansas teacher retention may have plateaued below pre-pandemic levels. This pattern is consistent with national trends — a [RAND survey](https://www.rand.org/pubs/research_reports/RRA4737-1.html) found that districts' reported rates of teacher retirements and resignations nearly doubled during the pandemic before only partially recovering. New data for the 2025-26 school year confirms this finding in Arkansas. For the second straight year, roughly <b>12.7 percent</b> of Arkansas teachers left the classroom - still almost <b>2 percentage points</b> above the typical pre-pandemic rate. This leveling-off is despite [high reported levels of teacher job satisfaction](https://oep.uark.edu/new-survey-results-show-arkansas-teachers-report-high-satisfaction-with-room-to-strengthen-support/) and early evidence that [LEARNS salary raises improved teacher retention](https://oep.uark.edu/raising-the-floor-early-evidence-suggests-learns-salary-increases-improved-teacher-retention/).
 
 What's behind this plateau? In this blog post, we explore those components of the teacher labor market that are returning to normal - and one that is not.
 
-## Retention Rates Remain Low in 2025-26
+## Retention Rates Are Still Below Pre-Pandemic Levels
 
 In 2025-26, roughly 87 percent of Arkansas teachers returned to the classroom. This rate is unchanged from 2024-25 and remains over 1.5 percentage points below pre-pandemic levels. This raises a natural question: is higher teacher turnover the new normal for the state?
 
@@ -49,15 +49,17 @@ The statewide retention rate combines all Movers and Stayers, since both groups 
 import { stackedBarChart } from "./components/stacked-bar-chart.js";
 
 const RETENTION_CATEGORIES = [
-  { label: "Stayer",                color: "#053061", textColor: "white" },
+  { label: "Stayer", color: "#053061", textColor: "white" },
   { label: "Mover - Same District", color: "#2166AC", textColor: "white" },
-  { label: "Mover - New District",  color: "#92C5DE", textColor: "black" },
-  { label: "Switcher",              color: "#F4A582", textColor: "black" },
-  { label: "Exiter",                color: "#B2182B", textColor: "white" },
-  { label: "Retired",               color: "#67001F", textColor: "white" },
+  { label: "Mover - New District", color: "#92C5DE", textColor: "black" },
+  { label: "Switcher", color: "#F4A582", textColor: "black" },
+  { label: "Exiter", color: "#B2182B", textColor: "white" },
+  { label: "Retired", color: "#67001F", textColor: "white" },
 ];
 
-display(stackedBarChart(labor_market_outcomes, RETENTION_CATEGORIES, { width }));
+display(
+  stackedBarChart(labor_market_outcomes, RETENTION_CATEGORIES, { width }),
+);
 ```
 
 ## Exits, Not Retirements
@@ -136,12 +138,14 @@ display(
 
 Instead, exits among early- and mid-career teachers underlie increased turnover. This year, about 6.4 percent of teachers exited the Arkansas public school workforce. This is over 1 percentage point higher than before the pandemic - the same elevated rate we've seen for the past three years.
 
+Over 70 percent of these non-retiree exiters had 10 or fewer years of teaching experience. Prior to the pandemic, teachers with 0 to 3 years of experience accounted for the largest share of exiters; in the last five years, more experienced teachers with 4 to 10 years of experience made up the highest percentage of these exits.
+
 ```js
 const EXPERIENCE_CATEGORIES = [
-  { label: "0-3 years",   color: "#DEEBF7", textColor: "black" },
-  { label: "4-10 years",  color: "#9ECAE1", textColor: "black" },
+  { label: "0-3 years", color: "#DEEBF7", textColor: "black" },
+  { label: "4-10 years", color: "#9ECAE1", textColor: "black" },
   { label: "11-20 years", color: "#3182BD", textColor: "white" },
-  { label: "20+ years",   color: "#08519C", textColor: "white" },
+  { label: "20+ years", color: "#08519C", textColor: "white" },
 ];
 
 // Collapse pre-pandemic years into a single averaged baseline bar,
@@ -152,22 +156,30 @@ const prePandemicAvg = experienceLabels.map((cat) => {
     (d) => PRE_PANDEMIC_YEARS.has(d.schoolyear) && d.category === cat,
   );
   const avg = d3.mean(rows, (d) => +d.value);
-  return { schoolyear: "Pre-pandemic avg.", category: cat, value: avg, label: avg.toFixed(1) };
+  return {
+    schoolyear: "Pre-pandemic",
+    category: cat,
+    value: avg,
+    label: avg.toFixed(1),
+  };
 });
 const postPandemicYears = exiter_experience.filter(
   (d) => !PRE_PANDEMIC_YEARS.has(d.schoolyear),
 );
 const exiter_experience_rolled = [...prePandemicAvg, ...postPandemicYears];
 
-display(stackedBarChart(exiter_experience_rolled, EXPERIENCE_CATEGORIES, {
-  width,
-  height: Math.round(width * 0.4),
-  yLabel: "% of Non-Retiree Exiters",
-  caption: "Each bar represents 100% of non-retiree exiters that year, broken down by years of teaching experience.",
-}));
+display(
+  stackedBarChart(exiter_experience_rolled, EXPERIENCE_CATEGORIES, {
+    width,
+    height: Math.round(width * 0.4),
+    yLabel: "% of Non-Retiree Exiters",
+    caption:
+      "Each bar represents the total group of non-retiree exiters that year, broken down by years of teaching experience.",
+  }),
+);
 ```
 
-Switchers drive the remaining retention gap. In 2025-26, the rate of teachers switching to non-teaching public school roles dropped by .2 pp, inching back towards pre-pandemic levels. This decrease continues a slow but steady pattern of decline - the Switcher rate is now down .8 percentage points from its 2022-23 peak.
+While exits drive most of the decline in retention, they aren't the only factor. Switchers drive the remaining retention gap. In 2025-26, the rate of teachers switching to non-teaching public school roles dropped by .2 pp, inching back towards pre-pandemic levels. This decrease continues a slow but steady pattern of decline - the Switcher rate is now down .8 percentage points from its 2022-23 peak.
 
 [Last year](https://oep.uark.edu/2024-25-arkansas-teacher-retention-statewide-stability-amid-ongoing-local-challenges/), we discussed how the January 2025 expiration of Federal ESSER (Elementary and Secondary School Emergency Relief) funds could lead to a dip in the Switcher rate, as some Arkansas districts may have used these funds for new non-teaching roles. That the Switcher rate remains elevated this year suggests some rigidity in districts' response to this expiration. Next year's data should reveal more of districts' adjustment to this funding loss.
 
@@ -194,14 +206,14 @@ As more teachers stayed, fewer moved to new districts. Only 4.9 percent of teach
 
 At the district level, retention recovery remains uneven. Despite improvements for some of the state's lowest-retention districts, most geographic shortage area districts still experience higher-than-average turnover.
 
-The scatter plot below compares each district's average retention rate before the pandemic (2014-15 to 2019-20) against the three most recent years (2023-24 to 2025-26). Districts to the right of the diagonal held retention rates similar to their pre-pandemic levels; districts below it have not recovered. Districts highlighted in red were identified by the state as Geographic Shortage Areas in 2025-26.
+The scatter plot below compares each district's average retention rate before the pandemic (2014-15 to 2019-20) against the three most recent years (2023-24 to 2025-26). Districts below the diagonal lag behind their pre-pandemic retention levels; districts above the diagonal have more than recovered. Districts highlighted in red were identified by the state as [high needs geographic shortage districts](https://docs.google.com/spreadsheets/d/1xnrhc6OGv_TY0lii191q3vys_eTs7RGt/edit?gid=1823429520#gid=1823429520) in 2025-26.
 
 ```js
 import { districtScatterChart } from "./components/district-scatter-chart.js";
 display(districtScatterChart(district_retention, { width }));
 ```
 
-Only seven of the original geographic shortage area districts measured above-average retention over the last three years. Among the geographic shortage area districts with a prior retention rate below 75 percent, some gained significantly, other declined sharply, but none were able to catch up with the state average retention rate in the recent period.
+Most 2025-26 geographic shortage districts measured below-average levels of retention over the last three years. On average, these districts retained only 77.1 percent of teachers - roughly 4.5 pp less than the average district in the state. Most of these districts experienced high levels of turnover before the pandemic as well, and while some have experienced large improvements in retention, 40 out of the 64 shortage area districts have lower retention now before the pandemic.
 
 Below, you can review our updated interactive tool to examine how 2025-26 retention looks in your district.
 

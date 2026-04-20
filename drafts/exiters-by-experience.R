@@ -93,3 +93,31 @@ ggplot(
     axis.text = element_text(color = "grey40"),
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
+
+ggplot(
+  exiter_experience_breakdown,
+  aes(x = schoolyear, y = count, fill = exp_category)
+) +
+  geom_col() +
+  geom_text(
+    aes(label = ifelse(percentage > 0.02, count, "")),
+    position = position_stack(vjust = 0.5),
+    size = 4.5,
+    color = "black"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette = "Blues") +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Years of Experience",
+    title = NULL
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "right",
+    legend.key = element_blank(),
+    axis.text = element_text(color = "grey40"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )

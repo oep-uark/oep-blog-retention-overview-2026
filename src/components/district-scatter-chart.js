@@ -129,7 +129,7 @@ export function districtScatterChart(data, { width = 640 } = {}) {
       const color = change >= 0 ? "#2e7d32" : "#c0392b";
       return `
         <strong>${formatName(d.district_name)}</strong><br>
-        Pre-pandemic avg.: ${d.prepandemic.toFixed(1)}%<br>
+        Pre-pandemic average: ${d.prepandemic.toFixed(1)}%<br>
         2023–24 to 2025–26: ${d.recent.toFixed(1)}%<br>
         <span style="color:${color}; font-weight:600">
           Change: ${sign}${Math.abs(change).toFixed(1)} pp

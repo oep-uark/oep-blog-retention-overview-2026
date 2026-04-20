@@ -99,16 +99,17 @@ export function stackedBarChart(data, categories, { width = 640, height, yLabel 
   }
 
   // A <style> element whose content is swapped on hover to fade non-hovered segments.
-  // Targets both SVG elements (bars, labels) and legend items via data-category.
+  // Scoped to this chart's container via a unique ID so other charts' legends are unaffected.
+  const uid = `sbc-${Math.random().toString(36).slice(2, 8)}`;
   const fadeStyle = html`<style></style>`;
 
   function highlight(category) {
     fadeStyle.textContent = category
       ? `
-        svg rect[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
-        svg text[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
-        div[data-category]:not([data-category="${category}"]) { opacity: 0.4; transition: opacity 0.2s; }
-        div[data-category="${category}"] span { font-weight: 700; }
+        #${uid} svg rect[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
+        #${uid} svg text[data-category]:not([data-category="${category}"]) { opacity: 0.15; transition: opacity 0.2s; }
+        #${uid} div[data-category]:not([data-category="${category}"]) { opacity: 0.4; transition: opacity 0.2s; }
+        #${uid} div[data-category="${category}"] span { font-weight: 700; }
       `
       : "";
   }
@@ -127,7 +128,7 @@ export function stackedBarChart(data, categories, { width = 640, height, yLabel 
     ? html`<p style="margin: 6px 0 0; font-size: 12px; color: #888; font-style: italic;">${caption}</p>`
     : null;
 
-  return html`<div style="display: flex; flex-direction: column;">
+  return html`<div id="${uid}" style="display: flex; flex-direction: column;">
     ${fadeStyle}${chart}${legendEl}${captionEl}
   </div>`;
 }
