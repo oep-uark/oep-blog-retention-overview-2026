@@ -30,7 +30,7 @@ export function districtScatterChart(data, { width = 640 } = {}) {
     marginTop: 24,
     style: CHART_STYLE,
     x: {
-      label: "Avg. Retention Rate, Pre-pandemic (2014–15 to 2019–20)",
+      label: "Average Retention Rate, Pre-pandemic (2014–15 to 2019–20)",
       labelAnchor: "center",
       labelArrow: "none",
       domain: [55, 100],
@@ -38,7 +38,7 @@ export function districtScatterChart(data, { width = 640 } = {}) {
       tickSize: 0,
     },
     y: {
-      label: "Avg. Retention Rate, 2023–24 to 2025–26",
+      label: "Average Retention Rate, 2023–24 to 2025–26",
       labelAnchor: "center",
       labelArrow: "none",
       domain: [55, 100],
@@ -143,5 +143,5 @@ export function districtScatterChart(data, { width = 640 } = {}) {
     { label: "Shortage District (2025–26)", color: SHORTAGE_COLOR },
   ]);
 
-  return html`<div>${container}${legend}</div>`;
+  return html`<div>${container}<div style="padding-left: 55px; padding-right: 20px;">${legend}</div></div>`;
 }
