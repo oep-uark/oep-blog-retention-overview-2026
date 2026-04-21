@@ -39,13 +39,8 @@ export default {
         max-width: none !important;
       }
       /* When embedded in WordPress iframe: remove all padding/margins */
-      html.iframe-embed body,
-      html.iframe-embed main {
-        padding: 0 !important;
+      html.iframe-embed #observablehq-center {
         margin: 0 !important;
-      }
-      html.iframe-embed main {
-        max-width: none !important;
       }
     </style>
   <script>
