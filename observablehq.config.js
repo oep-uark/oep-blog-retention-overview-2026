@@ -66,6 +66,7 @@ export default {
         document.body.style.color = "#565656";
         const firstP = document.querySelector("main p");
         if (firstP) firstP.style.marginTop = "0";
+        document.querySelectorAll("a").forEach(a => a.style.color = "#9d2235");
       }
       reportHeight();
       new ResizeObserver(reportHeight).observe(document.body);

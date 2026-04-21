@@ -206,7 +206,7 @@ display(changeFromBaselineChart(retainedDelta, retainedCategories, { width }));
 
 As more teachers stayed, fewer moved to new districts. Only 4.9 percent of teachers taught in a new district this year, a 0.8 percentage point decrease from 2024-25. This means that even as statewide retention held steady, those teachers who were retained were more likely to stay in the same district - a sign of growing stability within schools.
 
-## Geographic shortage area districts continue to struggle.
+## Many geographic shortage area districts continue to struggle.
 
 At the district level, retention recovery remains uneven. Despite improvements for some of the state's lowest-retention districts, most geographic shortage area districts still experience higher-than-average turnover.
 
@@ -318,7 +318,7 @@ display(
 );
 ```
 
-## The story behind the statewide averages.
+## The Story Behind the Statewide Averages
 
 Several years of post-pandemic data now reveal a new normal for Arkansas schools: slightly lower retention rates driven by higher exits among early- and mid-career teachers. At the same time, teachers are staying in their current schools more and moving and switching less than in the years immediately following the pandemic. Underneath these statewide trends, districts vary a lot in their ability to recruit and retain teachers.
 
@@ -327,3 +327,16 @@ Arkansas has enacted several major policies to bolster the teaching workforce - 
 Yet statewide averages mask wide variation across districts. Geographic shortage area districts retain, on average, 4.5 percentage points fewer teachers than the rest of the state - a gap that has persisted even as the overall picture stabilized. Addressing these disparities will require solutions tailored to the specific conditions facing low-retention districts and regions.
 
 In the posts that follow, we dig deeper into the patterns behind these gaps — examining which teachers are leaving, where they're going, and what distinguishes districts that have recovered from those that continue to struggle. Our goal is to help state and district leaders diagnose challenges and identify targeted levers that can help the districts and communities that need it most ensure they have the teachers their students deserve.
+
+<p>by: [Author Names]</p>                                                                                                                                                                      
+<iframe id="oep-retention-embed" style="width: 100%; min-height: 600px; margin: 0; padding: 0;" src="https://roymckenzie4.github.io/oep-blog-retention-overview-2026/" scrolling="no"></iframe>
+<script>                                                                                                                                                                                       
+  window.addEventListener("message", (event) => {                                                                                                                                              
+    if (event.data?.type === "setHeight") {                                                                                                                                                    
+      const iframe = document.getElementById("oep-retention-embed");
+      if (iframe) {                                                                                                                                                                            
+        iframe.style.height = `${event.data.height}px`;
+      }                                                                                                                                                                                        
+    }           
+  });
+</script>
