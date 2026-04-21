@@ -327,16 +327,3 @@ Arkansas has enacted several major policies to bolster the teaching workforce - 
 Yet statewide averages mask wide variation across districts. Geographic shortage area districts retain, on average, 4.5 percentage points fewer teachers than the rest of the state - a gap that has persisted even as the overall picture stabilized. Addressing these disparities will require solutions tailored to the specific conditions facing low-retention districts and regions.
 
 In the posts that follow, we dig deeper into the patterns behind these gaps — examining which teachers are leaving, where they're going, and what distinguishes districts that have recovered from those that continue to struggle. Our goal is to help state and district leaders diagnose challenges and identify targeted levers that can help the districts and communities that need it most ensure they have the teachers their students deserve.
-
-<p>by: [Author Names]</p>                                                                                                                                                                      
-<iframe id="oep-retention-embed" style="width: 100%; min-height: 600px; margin: 0; padding: 0;" src="https://roymckenzie4.github.io/oep-blog-retention-overview-2026/" scrolling="no"></iframe>
-<script>                                                                                                                                                                                       
-  window.addEventListener("message", (event) => {                                                                                                                                              
-    if (event.data?.type === "setHeight") {                                                                                                                                                    
-      const iframe = document.getElementById("oep-retention-embed");
-      if (iframe) {                                                                                                                                                                            
-        iframe.style.height = `${event.data.height}px`;
-      }                                                                                                                                                                                        
-    }           
-  });
-</script>
