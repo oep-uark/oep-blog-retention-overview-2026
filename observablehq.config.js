@@ -39,7 +39,17 @@ export default {
         max-width: none !important;
       }
     </style>
-  `,
+  <script>
+    function reportHeight() {
+      window.parent.postMessage(
+        { type: "setHeight", height: document.documentElement.scrollHeight },
+        "*"
+      );
+    }
+    window.addEventListener("load", reportHeight);
+    new ResizeObserver(reportHeight).observe(document.body);
+  </script>
+`,
 
   // The path to the source root.
   root: "src",
