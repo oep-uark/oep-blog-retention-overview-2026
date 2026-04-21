@@ -1,6 +1,7 @@
 # OEP Teacher Retention Overview 2025–26
 
-**Live site**: https://roymckenzie4.github.io/oep-blog-retention-overview-2026/
+**Production (OEP)**: https://oep-uark.github.io/oep-blog-retention-overview-2026/
+**Dev (staging)**: https://roymckenzie4.github.io/oep-blog-retention-overview-2026/
 
 An interactive data visualization post from the [Office for Education Policy](https://oep.uark.edu/) at the University of Arkansas. This is Post 1 in a planned series on the Arkansas teacher workforce.
 
@@ -45,7 +46,23 @@ git push
 
 ## Deployment
 
-Deployment is fully automated. Push to `main` and GitHub Actions builds and deploys to GitHub Pages. No manual build step needed.
+There are two remotes and two GitHub Pages deployments:
+
+| Remote | Repo | URL | Purpose |
+|--------|------|-----|---------|
+| `origin` | `roymckenzie4/oep-blog-retention-overview-2026` | roymckenzie4.github.io/... | Dev / staging |
+| `oep` | `oep-uark/oep-blog-retention-overview-2026` | oep-uark.github.io/... | Production (WordPress iframe) |
+
+Pushing to either remote automatically triggers a GitHub Actions build and deploy. No manual build step needed.
+
+**Day-to-day:** push to `origin` (your personal account) to preview changes.
+
+**Publishing to production:**
+```bash
+gh auth switch --user oep-uark
+git push oep main
+gh auth switch --user roymckenzie4
+```
 
 To trigger a deploy manually: GitHub → Actions → Deploy → Run workflow.
 
