@@ -46,8 +46,14 @@ export default {
         "*"
       );
     }
-    window.addEventListener("load", reportHeight);
-    new ResizeObserver(reportHeight).observe(document.body);
+    window.addEventListener("load", function() {
+      if (window.self !== window.top) {
+        const title = document.querySelector("h1");
+        if (title) title.style.display = "none";
+      }
+      reportHeight();
+      new ResizeObserver(reportHeight).observe(document.body);
+    });
   </script>
 `,
 
