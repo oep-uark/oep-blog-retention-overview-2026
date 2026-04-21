@@ -38,8 +38,21 @@ export default {
       main .observablehq, main .observablehq--block {
         max-width: none !important;
       }
+      /* When embedded in WordPress iframe: remove all padding/margins */
+      html.iframe-embed body,
+      html.iframe-embed main {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      html.iframe-embed main {
+        max-width: none !important;
+      }
     </style>
   <script>
+    // Run immediately (before load) so CSS takes effect before first paint
+    if (window.self !== window.top) {
+      document.documentElement.classList.add("iframe-embed");
+    }
     function reportHeight() {
       window.parent.postMessage(
         { type: "setHeight", height: document.documentElement.scrollHeight },
