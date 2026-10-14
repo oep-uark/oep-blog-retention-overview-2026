@@ -7,8 +7,10 @@
 # Output columns:
 #   districtlea          - ADE LEA code
 #   geoid                - NCES GEOID for joining with geojson
-#   district_name        - District name
+#   district_name        - District name (GeoJSON name; crosswalk name for
+#                          charters without a map boundary)
 #   county_name          - County name
+#   charter              - TRUE if federally designated charter LEA (CCD agency_type 7)
 #   teachers_before      - Teacher headcount in 2024-25
 #   teachers_current     - Teacher headcount in 2025-26 (incl. new entrants)
 #   stayers              - Stayed in same district (incl. within-district movers)
@@ -23,6 +25,7 @@ library(dplyr)
 library(janitor)
 library(readr)
 library(sf)
+library(stringr)
 library(jsonlite)
 
 # --- Configuration ---
@@ -92,7 +95,26 @@ teachers_2026 <- teacher_lm |>
 district_2026 <- district_2026 |>
   left_join(teachers_2026, by = "districtlea")
 
-# --- Load CCD crosswalk for county names only ---
+# --- Load CCD crosswalk for county names, charter flag, and charter names ---
+# Crosswalk names are ALL CAPS, so they're only used for charters that have no
+# GeoJSON boundary. Title case mangles acronyms; fix those by hand.
+name_fixes <- c(
+  "\\bKipp\\b"  = "KIPP",
+  "\\bLisa\\b"  = "LISA",
+  "\\bEstem\\b" = "eSTEM",
+  "\\bAmfra\\b" = "AMFRA",
+  "\\bNw\\b"    = "NW"
+)
+
+clean_lea_name <- function(x) {
+  x |>
+    str_to_title() |>
+    str_squish() |>
+    str_replace_all(name_fixes) |>
+    # Lowercase minor words except at the start of the name
+    str_replace_all("(?<!^)\\b(Of|And|For|The)\\b", tolower)
+}
+
 cxwalk <- read_csv(
   "src/data/educationdata_arkansas_2023.csv",
   col_types = cols(leaid = col_character()),
@@ -101,26 +123,52 @@ cxwalk <- read_csv(
   select(
     geoid        = leaid,
     district_lea = state_leaid,
-    county_name
+    county_name,
+    lea_name,
+    agency_type
   ) |>
-  mutate(district_lea = as.numeric(gsub("AR-", "", district_lea)))
+  mutate(
+    district_lea = as.numeric(gsub("AR-", "", district_lea)),
+    charter      = agency_type == 7,
+    lea_name     = clean_lea_name(lea_name)
+  ) |>
+  select(-agency_type)
 
-# --- Load GeoJSON for correctly-cased district names and GEOID filter ---
+# --- Load GeoJSON for correctly-cased district names ---
 geojson_names <- sf::read_sf("src/data/ar-school-districts.geojson") |>
   sf::st_drop_geometry() |>
-  select(geoid = GEOID, district_name = NAME)
+  select(geoid = GEOID, map_name = NAME)
 
 # --- Join and write output ---
-output <- district_2026 |>
+# Keep districts on the map plus all charters (which may lack a map boundary).
+joined <- district_2026 |>
   mutate(districtlea_num = as.numeric(districtlea)) |>
   left_join(cxwalk, by = c("districtlea_num" = "district_lea")) |>
-  inner_join(geojson_names, by = "geoid") |>
-  filter(!is.na(retention_rate)) |>
+  left_join(geojson_names, by = "geoid") |>
+  filter(!is.na(retention_rate))
+
+# Report excluded LEAs in the build log (e.g. charters newer than the crosswalk)
+excluded <- joined |> filter(is.na(map_name), !charter | is.na(charter))
+if (nrow(excluded) > 0) {
+  message(
+    "district-retention-2026: excluded ", nrow(excluded), " LEA(s) with no ",
+    "map boundary and no charter match: ",
+    paste(excluded$districtlea, coalesce(excluded$lea_name, "?"), collapse = "; ")
+  )
+}
+
+output <- joined |>
+  filter(!is.na(map_name) | charter %in% TRUE) |>
+  mutate(
+    district_name = coalesce(map_name, lea_name),
+    charter       = coalesce(charter, FALSE)
+  ) |>
   select(
     districtlea,
     geoid,
     district_name,
     county_name,
+    charter,
     teachers_before,
     teachers_current,
     stayers,

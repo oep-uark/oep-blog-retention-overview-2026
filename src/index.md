@@ -294,6 +294,7 @@ const csvData = district_retention_2026.map((d) => ({
   districtlea: d.districtlea,
   district_name: d.district_name,
   county_name: d.county_name,
+  charter: d.charter,
   teachers_before: d.teachers_before,
   retention_rate_pct: (+d.retention_rate * 100).toFixed(1),
   stayers: d.stayers,
